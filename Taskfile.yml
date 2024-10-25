@@ -1,0 +1,29 @@
+version: '3'
+
+tasks:
+  build-frontend:
+    desc: "Build the Vue frontend"
+    dir: frontend
+    cmds:
+      - npm install
+      - npm run build
+
+  build-backend:
+    desc: "Install backend dependencies"
+    dir: backend
+    cmds:
+      - pip install -r requirements.txt
+
+  run-backend:
+    desc: "Run the Flask backend"
+    dir: backend
+    cmds:
+      - python app.py
+
+  start:
+    desc: "Build and run the project"
+    deps:
+      - build-frontend
+      - build-backend
+    cmds:
+      - task run-backend

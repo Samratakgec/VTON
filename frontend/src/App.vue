@@ -1,18 +1,22 @@
 <template>
   <!-- <img alt="Vue logo" src="./assets/logo.png">
   <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-  <WelcomeComp/>
+  <!-- <WelcomeComp/> -->
+   <HomePage/>
 </template>
 
 <script>
+import HomePage from './components/HomePage.vue';
+
 // import HelloWorld from './components/HelloWorld.vue'
-import WelcomeComp from './components/WelcomeComp.vue';
+// import WelcomeComp from './components/WelcomeComp.vue';
 
 export default {
   name: 'App',
   components: {
     // HelloWorld
-    WelcomeComp
+    // WelcomeComp
+    HomePage
   }
 }
 </script>
