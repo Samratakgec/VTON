@@ -1,11 +1,21 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 import requests
 import base64
 from PIL import Image
 from io import BytesIO
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend/dist")
+
+@app.route("/")
+def serve():
+    return send_from_directory(app.static_folder, "index.html")
+
+# Serve static assets (JavaScript, CSS, etc.)
+@app.route("/<path:path>")
+def serve_static_files(path):
+    return send_from_directory(app.static_folder, path)
+
 
 # Basic route to check the server status
 @app.route('/api/img')
