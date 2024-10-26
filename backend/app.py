@@ -1,93 +1,67 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 import requests
-from preprocess import preprocessInput
-
+import base64
 from PIL import Image
-import numpy as np
+from io import BytesIO
 
+# Initialize Flask app
 app = Flask(__name__)
 
-# OnDemand API endpoint
-ONDEMAND_API_URL = "http://localhost:5000/api/process"
-
-# API Key for OnDemand (if required)
-API_KEY = "a8kP5OGcKiBZe0z6orDQwQDVb8KJZoZE"
-
-@app.route('/api/try-on', methods=['POST'])
-def virtual_try_on():
+# Basic route to check the server status
+@app.route('/api/img')
+def home():
     try:
-        # Get the JSON payload from the request
-        data = request.json
+        data = request.get_json()
 
-        # Extract base64 strings from the request
-        user_image_b64 = data.get('user_image')
-        clothing_image_b64 = data.get('clothing_image')
+        clothing_image_base64 = data.get("cloth_image")
+        user_image_base64 = data.get("user_image")
 
-        # Check if all images are provided
-        if not all([user_image_b64, clothing_image_b64]):
-            return jsonify({"error": "All images are required"}), 400
-
-        # Prepare the payload for OnDemand API
-        payload = {
-            "user_image": user_image_b64,
-            "clothing_image": clothing_image_b64
-        }
-
-        # Send request to OnDemand API
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {API_KEY}"
-        }
-        response = requests.post(ONDEMAND_API_URL, json=payload, headers=headers)
-
-        # Handle the response from OnDemand API
-        if response.status_code == 200:
-            image_url = response.json().get("image_url")
-            return jsonify({"image_url": image_url}), 200
-        else:
-            return jsonify({"error": response.json()}), response.status_code
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/preprocess', methods=['POST'])
-def preprocess():
-    
-    try:
-        import requests
-
-        url = "https://api.on-demand.io/media/v1/public/file"
-
-        headers = {"accept": "application/json"}
-
-        response = requests.get(url, headers=headers)
-
-        print(response.text)
+        if not clothing_image_base64 or not user_image_base64:
+            return jsonify({"error": "Both 'clothing_image' and 'user_image' are required"}), 400
         
-        preprocess_user = preprocessInput()
 
-        op_user = preprocess_user.remove_bg(r'C:\React\VTON\user.jpg')
-        arr_user = preprocess_user.transform()
-        return jsonify({"image_url": arr_user}), 200
-        # Image.fromarray(arr).show()
+        api_key = "SG_1afd12a7789c2be8"
+        url = "https://api.segmind.com/v1/try-on-diffusion"
 
-        # preprocess_cloth = preprocessInput()
-        # op_cloth = preprocess_cloth.remove_bg(r'C:\React\VTON\cloth_img1.jpg')
-        # def transform(width=768, height=1024):
-        #         newsize = (width, height)
+        # Request payload
+        data = {
+        "model_image": user_image_base64, 
+        "cloth_image": clothing_image_base64, 
+        "category": "Upper body",
+        "num_inference_steps": 35,
+        "guidance_scale": 2,
+        "seed": 12467,
+        "base64": False
+        }
 
-        #         pic = op_cloth
-        #         img = Image.fromarray(pic).resize(newsize)
-        #         background = Image.new("RGBA", newsize, (0, 0, 0, 0))
-        #         background.paste(img, mask=img.split()[3])
-        #         save_path = r"C:\React\VTON\cloth_img1" + 'new.jpg'
-        #         # background.convert('RGB').save(save_path, 'JPEG')
+        headers = {'x-api-key': api_key}
 
-        #         return np.asarray(background.convert('RGB'))
-        # arr_user = transform()
+        response = requests.post(url, json=data, headers=headers)
+        
+        def pil_image_to_base64(image):
+            # Create an in-memory bytes buffer
+            buffered = BytesIO()
+            
+            # Save the PIL image to the buffer in PNG format (or any format of your choice)
+            image.save(buffered, format="PNG")
+            
+            # Get the image bytes and encode them to Base64
+            img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+            
+            return img_base64
+        
+        if response.status_code == 200:
+            image = Image.open(BytesIO(response.content))
+            # image.show()  # Opens the image in the default viewer
+            img = pil_image_to_base64(image)
+            return jsonify({"result" : img}), 200
+        else:
+            print("Failed to retrieve image. Status code:", response.status_code)
+            print("Response:", response.content)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-if __name__ == "__main__":
-    app.run(debug=True, port="5000")
+
+if __name__ == '__main__':
+    app.run(debug=True)
