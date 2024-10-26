@@ -12,17 +12,17 @@
           </div>
           <button type="submit">Submit</button>
         </form>
-        <div v-if="frontBase64" class="preview-container">
+        <div v-if="frontFile" class="preview-container">
           <h3>Image Previews</h3>
           <div class="preview">
             <h4>Front View:</h4>
-            <img v-if="frontBase64" :src="frontBase64" alt="Front View Preview" />
+            <img v-if="frontURL" :src="frontURL" alt="Front View Preview" />
           </div>
         </div>
       </div>
     </div>
     <div v-else>
-      <WelcomeComp :frontBase64="frontBase64" />
+      <WelcomeComp :pngfile="frontFile" />
     </div>
   </div>
 </template>
@@ -39,31 +39,29 @@ export default {
   },
   data() {
     return {
-      frontBase64: '',
-      submitted: false, // Control form submission state
+      frontFile: null,
+      frontURL: '',
+      submitted: false,
     };
   },
   methods: {
     handleImageUpload(event, view) {
       const input = event.target;
       if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (view === 'front') {
-            this.frontBase64 = e.target.result;
-          }
-        };
-        reader.readAsDataURL(input.files[0]);
+        const file = input.files[0];
+        if (view === 'front') {
+          this.frontFile = file;
+          this.frontURL = URL.createObjectURL(file);
+        }
       }
     },
     submitForm() {
-      if (this.frontBase64) {
-        console.log("Front Base64: ", this.frontBase64);
-        alert("Images uploaded successfully!");
-
+      if (this.frontFile) {
+        console.log("Front File: ", this.frontFile);
+        alert("Image uploaded successfully!");
         this.submitted = true; // Display the WelcomeComp component
       } else {
-        alert("Please upload both front and back view images.");
+        alert("Please upload the front view image.");
       }
     },
   },

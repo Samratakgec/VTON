@@ -4,32 +4,20 @@
     <div style="height: 50px;"></div>
     <div v-if="!showVideoResp" class="card-container">
       <CardInfo 
-        description="Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: White"
-        :imagetext="shirt1"
-        name="Raymond Cotton Shirt"
-        @try-me="openVideoResp"
-      />
-      <CardInfo 
-        description="Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: Blue"
-        :imagetext="shirt2"
-        name="Raymond Cotton Shirt"
-        @try-me="openVideoResp"
-      />
-      <CardInfo 
-        description="Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: Black"
-        :imagetext="shirt3"
-        name="Raymond Cotton Shirt"
-        @try-me="openVideoResp"
-      />
-      <CardInfo 
-        description="Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: Red"
-        :imagetext="shirt4"
-        name="Raymond Cotton Shirt"
-        @try-me="openVideoResp"
+        v-for="(shirt, index) in shirts"
+        :key="index"
+        :description="shirt.description"
+        :imagetext="shirt.image"
+        :name="shirt.name"
+        @try-me="openVideoResp(shirt.image)"
       />
     </div>
     <div v-if="showVideoResp">
-      <VideoResp :front-base64="frontBase64" :image-text="selectedImageText" />
+      <VideoResp 
+        :front-file="pngfile" 
+        :image-text="selectedImageFile" 
+        :shirt-image="selectedImageFile"
+      />
     </div>
   </div>
 </template>
@@ -38,34 +26,57 @@
 import AppBar from './AppBar.vue';
 import CardInfo from './CardInfo.vue';
 import VideoResp from './VideoResp.vue';
-import { shirt1, shirt2, shirt3, shirt4 } from '@/assets/shirtimgs.js';
+
+// Import images from the assets folder
+import shirt1 from '@/assets/shirt1.png';
+import shirt2 from '@/assets/shirt2.png';
+import shirt3 from '@/assets/shirt3.png';
+import shirt4 from '@/assets/shirt4.png';
 
 export default {
   name: 'WelcomeComp',
   components: {
     AppBar,
     CardInfo,
-    VideoResp
+    VideoResp,
   },
   props: {
-    frontBase64: {
-      type: String,
-      required: true
-    }
+    pngfile: {
+      type: File,
+      required: true,
+    },
   },
   data() {
     return {
-      shirt1,
-      shirt2,
-      shirt3,
-      shirt4,
-      selectedImageText: '',
+      selectedImageFile: null,
       showVideoResp: false,
+      shirts: [
+        {
+          description: "Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: White",
+          image: shirt1,
+          name: "Raymond Cotton Shirt",
+        },
+        {
+          description: "Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: Blue",
+          image: shirt2,
+          name: "Raymond Cotton Shirt",
+        },
+        {
+          description: "Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: Black",
+          image: shirt3,
+          name: "Raymond Cotton Shirt",
+        },
+        {
+          description: "Raymond Cotton Shirt Fabric for Men 1.6 Meters (Big Pana) Pattern: Self Design Slub, Color: Red",
+          image: shirt4,
+          name: "Raymond Cotton Shirt",
+        },
+      ],
     };
   },
   methods: {
-    openVideoResp(imagetext) {
-      this.selectedImageText = imagetext;
+    openVideoResp(imageFile) {
+      this.selectedImageFile = imageFile;
       this.showVideoResp = true; // Show VideoResp component
     },
   },
